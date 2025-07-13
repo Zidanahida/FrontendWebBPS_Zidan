@@ -1,59 +1,60 @@
 // src/context/PublicationContext.jsx
 import React, { createContext, useState, useEffect } from "react";
-import { publicationService } from "../services/publicationService"; // Pastikan path ini benar
-import { useAuth } from "../hooks/useAuth"; // Pastikan path ini benar
+import { publicationService } from "../services/publicationService";
+import { useAuth } from "../hooks/useAuth";
 
 const PublicationContext = createContext(null);
 
-const PublicationProvider = ({ children }) => {
+export const PublicationProvider = ({ children }) => {
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { token } = useAuth(); // Mengambil token dari custom hook useAuth
+  const { token } = useAuth(); // Tetap ambil token untuk dependency useEffect
 
-  // --- Mengambil data secara otomatis jika token user tersedia ---
   useEffect(() => {
     const fetchData = async () => {
-      // Jika tidak ada token, jangan lakukan fetching data
-      if (!token) {
-        setLoading(false); // Pastikan loading menjadi false jika tidak ada token
+      if (!token) { // Masih perlu cek token untuk memutuskan apakah fetch atau tidak
+        setLoading(false);
+        setPublications([]);
         return;
       }
 
-      setLoading(true); // Set loading menjadi true saat mulai fetching
+      setLoading(true);
       try {
-        const data = await publicationService.getPublications(token); // Mengirim token jika diperlukan oleh service
+        const data = await publicationService.getPublications(); // <-- TANPA PARAMETER token
         setPublications(data);
-        setError(null); // Bersihkan error jika berhasil
+        setError(null);
       } catch (err) {
-        console.error("Error fetching publications:", err); // Log error untuk debugging
-        setError(err.message || "Failed to fetch publications."); // Set pesan error yang lebih informatif
+        console.error("Error fetching publications:", err);
+        setError(err.message || "Failed to fetch publications.");
+        setPublications([]);
       } finally {
-        setLoading(false); // Set loading menjadi false setelah selesai (berhasil/gagal)
+        setLoading(false);
       }
     };
 
-    fetchData(); // Panggil fungsi fetchData saat komponen dimuat atau token berubah
-  }, [token]); // Dependency array: efek akan dijalankan ulang saat nilai token berubah
+    fetchData();
+  }, [token]);
 
-  // --- Modifikasi fungsi addPublication ---
   const addPublication = async (newPub) => {
     try {
-      const added = await publicationService.addPublication(newPub, token); // Mengirim token jika diperlukan
+      const added = await publicationService.addPublication(newPub); // <-- TANPA PARAMETER token
       setPublications((prev) => [added, ...prev]);
-      setError(null); // Bersihkan error jika berhasil
-      return added; // Mengembalikan data publikasi yang baru ditambahkan
+      setError(null);
+      return added;
     } catch (err) {
-      console.error("Error adding publication:", err); // Log error untuk debugging
-      setError(err.message || "Failed to add publication."); // Set pesan error
-      throw err; // Lempar kembali error agar bisa ditangani di komponen yang memanggil
+      console.error("Error adding publication:", err);
+      setError(err.message || "Failed to add publication.");
+      throw err;
     }
   };
 
-  // --- Fungsi editPublication (tetap sama, bisa ditambahkan token jika API membutuhkannya) ---
   const editPublication = async (updatedPub) => {
     try {
-      const updated = await publicationService.editPublication(updatedPub.id, updatedPub, token); // Asumsi service menerima id, data, dan token
+      if (!updatedPub.id) {
+          throw new Error("ID Publikasi tidak ditemukan untuk diperbarui.");
+      }
+      const updated = await publicationService.editPublication(updatedPub.id, updatedPub); // <-- TANPA PARAMETER token
       setPublications((prev) =>
         prev.map((pub) => (pub.id === updated.id ? updated : pub))
       );
@@ -66,10 +67,9 @@ const PublicationProvider = ({ children }) => {
     }
   };
 
-  // --- Fungsi deletePublication (tetap sama, bisa ditambahkan token jika API membutuhkannya) ---
   const deletePublication = async (id) => {
     try {
-      await publicationService.deletePublication(id, token); // Mengirim token jika diperlukan
+      await publicationService.deletePublication(id); // <-- TANPA PARAMETER token
       setPublications((prev) => prev.filter((pub) => pub.id !== id));
       setError(null);
     } catch (err) {
@@ -95,4 +95,4 @@ const PublicationProvider = ({ children }) => {
   );
 };
 
-export { PublicationContext, PublicationProvider };
+export { PublicationContext};

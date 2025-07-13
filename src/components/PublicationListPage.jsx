@@ -1,35 +1,31 @@
 // src/components/PublicationListPage.jsx
-import React, { useContext } from "react"; // <-- Tambahkan useContext
-import { PublicationContext } from "../context/PublicationContext"; // <-- Impor PublicationContext
+import React, { useContext } from "react";
+import { PublicationContext } from "../context/PublicationContext";
+import { useNavigate } from "react-router-dom"; // <-- PASTIKAN INI ADA
 
 /**
  * Komponen untuk menampilkan daftar publikasi dalam tabel.
  */
-export default function PublicationListPage() { // <-- Hapus props publications, onEdit, onDelete di sini
-  // Dapatkan nilai dari context
+export default function PublicationListPage() {
   const { publications, addPublication, editPublication, deletePublication } =
     useContext(PublicationContext);
+  const navigate = useNavigate(); // <-- PASTIKAN INI ADA
 
-  console.log("Nilai variabel publications di PublicationListPage (dari Context):", publications);
+  // console.log("Nilai variabel publications di PublicationListPage (dari Context):", publications);
 
-  // Implementasi onEdit dan onDelete bisa langsung menggunakan fungsi dari context
   const handleEdit = (pub) => {
-    // Arahkan ke halaman edit atau tampilkan modal
-    // Anda mungkin perlu akses ke navigate dari react-router-dom di komponen yang lebih tinggi
-    // atau di sini jika PublicationListPage ini juga child dari komponen yang sudah punya navigate.
     console.log("Mengedit publikasi:", pub);
-    // Contoh: navigate(`/publications/edit/${pub.id}`);
+    navigate(`/publications/edit/${pub.id}`); // <-- PASTIKAN BARIS INI TIDAK DIKOMENTARI DAN SUDAH BENAR
   };
 
   const handleDelete = (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus publikasi ini?")) {
-      deletePublication(id); // Memanggil fungsi dari context
+      deletePublication(id);
       console.log("Publikasi dengan ID", id, "dihapus.");
     }
   };
 
-  // --- LOGIC CONDITIONAL RENDERING TETAP SAMA ---
-  // 1. Cek apakah publications adalah null/undefined (belum ada data)
+  // --- LOGIC CONDITIONAL RENDERING (Tidak ada perubahan) ---
   if (!publications) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,10 +42,9 @@ export default function PublicationListPage() { // <-- Hapus props publications,
     );
   }
 
-  // 2. Cek apakah publications sudah ada tapi bukan array atau array kosong
   if (!Array.isArray(publications) || publications.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg::px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <header className="mb-8 text-center md:text-left">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">
             Daftar Publikasi BPS Provinsi Bengkulu
@@ -63,7 +58,6 @@ export default function PublicationListPage() { // <-- Hapus props publications,
     );
   }
 
-  // Jika sampai sini, 'publications' dijamin adalah sebuah array yang berisi data
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <header className="mb-8 text-center md:text-left">
@@ -94,7 +88,7 @@ export default function PublicationListPage() { // <-- Hapus props publications,
                 <td className="px-6 py-4 text-gray-600">{pub.releaseDate}</td>
                 <td className="px-6 py-4 flex justify-center items-center">
                   <img
-                    src={pub.coverUrl}
+                    src={pub.coverUrl} // Menggunakan coverUrl dari data
                     alt={`Sampul ${pub.title}`}
                     className="h-24 w-auto object-cover rounded shadow-md"
                     onError={(e) => {
@@ -105,13 +99,13 @@ export default function PublicationListPage() { // <-- Hapus props publications,
                 </td>
                 <td className="px-6 py-4 text-center space-x-2">
                   <button
-                    onClick={() => handleEdit(pub)} // Panggil handleEdit lokal
+                    onClick={() => handleEdit(pub)}
                     className="cursor-pointer font-medium text-white bg-amber-500 hover:bg-amber-600 transform transition-transform duration-200 hover:scale-105 px-4 py-2 rounded-lg text-xs"
                   >
                     Ubah
                   </button>
                   <button
-                    onClick={() => handleDelete(pub.id)} // Panggil handleDelete lokal
+                    onClick={() => handleDelete(pub.id)}
                     className="cursor-pointer font-medium text-white bg-red-500 hover:bg-red-600 transform transition-transform duration-200 hover:scale-105 px-4 py-2 rounded-lg text-xs"
                   >
                     Hapus

@@ -1,3 +1,4 @@
+// src/components/EditPublicationPage.jsx
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -10,23 +11,38 @@ import React, { useState, useEffect } from 'react';
  */
 
 export default function EditPublicationPage({ publicationToEdit, onUpdatePublication, onCancel }) {
-  // State untuk menampung data di dalam form
   const [title, setTitle] = useState('');
   const [releaseDate, setReleaseDate] = useState('');
-  const [coverFile, setCoverFile] = useState(null);
-  const [currentCoverUrl, setCurrentCoverUrl] = useState('');
+  const [coverFile, setCoverFile] = useState(null); // File baru yang dipilih pengguna
+  const [description, setDescription] = useState(''); // <-- Tambahkan state untuk description
+  
+  // URL yang akan ditampilkan di <img>. Ini bisa dari DB atau preview file baru.
+  const [displayCoverUrl, setDisplayCoverUrl] = useState(''); 
 
-  // useEffect untuk mengisi form saat komponen pertama kali dimuat
-  // atau saat 'publicationToEdit' berubah.
   useEffect(() => {
     if (publicationToEdit) {
-      setTitle(publicationToEdit.title);
-      setReleaseDate(publicationToEdit.releaseDate);
-      setCurrentCoverUrl(publicationToEdit.coverUrl);
+      setTitle(publicationToEdit.title || '');
+      setReleaseDate(publicationToEdit.releaseDate || '');
+      setDescription(publicationToEdit.description || ''); // <-- Inisialisasi description
+      // Inisialisasi displayCoverUrl dengan URL dari DB
+      setDisplayCoverUrl(publicationToEdit.coverUrl || ''); 
+      setCoverFile(null); // Reset coverFile saat publikasi berubah
     }
   }, [publicationToEdit]);
 
-  // Fungsi yang dijalankan saat form disubmit
+  // Efek untuk membuat URL objek sementara saat coverFile dipilih untuk preview
+  useEffect(() => {
+    if (coverFile) {
+      const objectUrl = URL.createObjectURL(coverFile);
+      setDisplayCoverUrl(objectUrl); // Update displayCoverUrl untuk preview
+      return () => URL.revokeObjectURL(objectUrl); // Bersihkan URL objek saat komponen unmount atau file berubah
+    } else if (publicationToEdit && !displayCoverUrl) {
+      // Jika tidak ada coverFile dan displayCoverUrl kosong, 
+      // set kembali ke URL dari publicationToEdit (jika ada)
+      setDisplayCoverUrl(publicationToEdit.coverUrl || '');
+    }
+  }, [coverFile, publicationToEdit]); // Tambahkan publicationToEdit ke dependencies
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title || !releaseDate) {
@@ -34,26 +50,24 @@ export default function EditPublicationPage({ publicationToEdit, onUpdatePublica
       return;
     }
 
-    // Tentukan URL sampul, gunakan yang baru jika ada, jika tidak, pertahankan yang lama.
-    let updatedCoverUrl = currentCoverUrl;
-    if (coverFile) {
-      updatedCoverUrl = URL.createObjectURL(coverFile);
-    }
-
     // Buat objek publikasi yang sudah diperbarui
     const updatedPublication = {
       ...publicationToEdit, // Pertahankan ID dan properti lain yang tidak berubah
-      title, // Timpa dengan judul baru
-      releaseDate, // Timpa dengan tanggal rilis baru
-      coverUrl: updatedCoverUrl, // Timpa dengan URL sampul baru
+      title,
+      releaseDate,
+      description, // <-- Sertakan description
+      coverFile: coverFile, // <-- PENTING: Kirim objek File jika ada yang baru
+      // Tidak perlu lagi mengirim `coverUrl` langsung dari sini,
+      // `publicationService` akan mengurus URL Cloudinary.
+      // Cukup kirim `coverFile` (jika ada) dan `publicationToEdit.coverUrl` (URL lama)
+      // publicationService akan memutuskan mana yang digunakan.
+      // Kita tambahkan `currentCoverUrlFromDb` untuk memastikan URL lama tetap ada
+      currentCoverUrlFromDb: publicationToEdit.coverUrl // <-- Kirim URL lama dari DB
     };
 
-    // Kirim data yang sudah diupdate ke App.jsx
     onUpdatePublication(updatedPublication);
   };
 
-  // Jika tidak ada publikasi yang dipilih, jangan render apa pun
-  // Ini untuk menghindari error saat mencoba mengakses properti dari undefined
   if (!publicationToEdit) return null;
 
   return (
@@ -90,20 +104,43 @@ export default function EditPublicationPage({ publicationToEdit, onUpdatePublica
           />
         </div>
 
+        {/* Input Description (Tambahkan ini jika Anda punya field description) */}
+        <div>
+          <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700 mb-1">
+            Deskripsi
+          </label>
+          <textarea
+            id="edit-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows="3"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+          ></textarea>
+        </div>
+
         {/* Input Sampul */}
         <div>
           <label htmlFor="edit-cover" className="block text-sm font-medium text-gray-700 mb-1">
             Ganti Sampul (Gambar)
           </label>
           <div className="flex items-center space-x-4 mt-2">
-              <img src={currentCoverUrl} alt="Sampul saat ini" className="h-24 w-auto rounded shadow-md object-cover" />
-              <input
-                type="file"
-                id="edit-cover"
-                accept="image/*"
-                onChange={(e) => setCoverFile(e.target.files[0])}
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
-              />
+            {/* Logika src yang diperbaiki untuk preview */}
+            <img 
+                src={displayCoverUrl || "https://placehold.co/100x140/cccccc/ffffff?text=No+Cover"} 
+                alt="Sampul saat ini" 
+                className="h-24 w-auto rounded shadow-md object-cover" 
+                onError={(e) => { // Tambahkan onError untuk fallback
+                  e.target.onerror = null; 
+                  e.target.src="https://placehold.co/100x140/cccccc/ffffff?text=Error";
+                }}
+            />
+            <input
+              type="file"
+              id="edit-cover"
+              accept="image/*"
+              onChange={(e) => setCoverFile(e.target.files[0])} // Hanya set coverFile
+              className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
+            />
           </div>
         </div>
         
