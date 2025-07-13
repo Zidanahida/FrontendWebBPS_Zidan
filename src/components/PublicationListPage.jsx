@@ -47,7 +47,7 @@ export default function PublicationListPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <header className="mb-8 text-center md:text-left">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">
-            Daftar Publikasi BPS Provinsi Bengkulu
+            Daftar Publikasi BPS Provinsi Gorontalo
           </h1>
           <p className="text-gray-500 mt-1">Sumber data publikasi terkini</p>
         </header>
