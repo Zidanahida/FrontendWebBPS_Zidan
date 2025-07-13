@@ -127,20 +127,6 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-
-        <div className="mt-8 text-center text-gray-600 text-base">
-          <p>
-            Belum punya akun?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors duration-200">
-              Daftar Sekarang
-            </Link>
-          </p>
-          <p className="mt-2">
-            <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors duration-200">
-              Lupa Password?
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );

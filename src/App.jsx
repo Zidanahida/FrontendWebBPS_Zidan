@@ -7,7 +7,7 @@ import PublicationListPage from "./components/PublicationListPage";
 import AddPublicationPage from "./components/AddPublicationPage";
 import Footer from "./components/Footer";
 import LoginPage from "./components/LoginPage";
-import RegisterPage from "./components/RegisterPage";
+// import RegisterPage from "./components/RegisterPage";
 import EditPublicationPage from "./components/EditPublicationPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
@@ -18,7 +18,7 @@ export default function App() {
   const { isAuthenticated } = useAuth();
   const { publications, editPublication } = useContext(PublicationContext);
 
-  const showAuthPages = location.pathname.startsWith('/login') || location.pathname.startsWith('/register');
+  const showAuthPages = location.pathname.startsWith('/login');
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans">
@@ -27,7 +27,7 @@ export default function App() {
       <main className={`${showAuthPages ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          {/* <Route path="/register" element={<RegisterPage />} /> */}
 
           <Route
             path="/publications"
