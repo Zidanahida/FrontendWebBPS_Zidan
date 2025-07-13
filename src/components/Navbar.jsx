@@ -50,7 +50,7 @@ export default function Navbar() {
             <span
               className="text-white text-base md:text-lg font-bold tracking-wide hidden sm:block"
             >
-              BPS PROVINSI BENGKULU
+              BPS PROVINSI GORONTALO
             </span>
           </div>
           <div className="flex items-center space-x-2">
